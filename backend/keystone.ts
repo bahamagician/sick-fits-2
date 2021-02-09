@@ -1,23 +1,24 @@
-import { createAuth } from '@keystone-next/auth';
-import { config, createSchema } from '@keystone-next/keystone/schema';
-import { ProductImage } from './schemas/ProductImage';
-import { Product } from './schemas/Product';
-import { User } from './schemas/User';
-import 'dotenv/config';
+import { createAuth } from "@keystone-next/auth";
+import { config, createSchema } from "@keystone-next/keystone/schema";
+import { ProductImage } from "./schemas/ProductImage";
+import { Product } from "./schemas/Product";
+import { User } from "./schemas/User";
+import "dotenv/config";
 import {
   withItemData,
   statelessSessions,
-} from '@keystone-next/keystone/session';
+} from "@keystone-next/keystone/session";
+import { insertSeedData } from "./seed-data";
 
 const databaseURL =
-  process.env.DATABASE_URL || 'mongodb://localhost/keystone-sick-fits-tutorial';
+  process.env.DATABASE_URL || "mongodb://localhost/keystone-sick-fits-tutorial";
 
 const { withAuth } = createAuth({
-  listKey: 'User',
-  identityField: 'email',
-  secretField: 'password',
+  listKey: "User",
+  identityField: "email",
+  secretField: "password",
   initFirstItem: {
-    fields: ['name', 'email', 'password'],
+    fields: ["name", "email", "password"],
     // TODO: Add in initial roles here
   },
 });
@@ -37,9 +38,14 @@ export default withAuth(
       },
     },
     db: {
-      adapter: 'mongoose',
+      adapter: "mongoose",
       url: databaseURL,
-      // TODO: Add data seeding here
+      async onConnect(keystone) {
+        console.log("Connected to DB");
+        if (process.argv.includes("--seed-data")) {
+          await insertSeedData(keystone);
+        }
+      },
     },
     lists: createSchema({
       // Schema items go in here
@@ -54,7 +60,7 @@ export default withAuth(
         !!session?.data,
     },
     session: withItemData(statelessSessions(sessionConfig), {
-      User: 'id',
+      User: "id",
     }),
   })
 );
