@@ -24,7 +24,7 @@ const UPDATE_PRODUCT_MUTATION = gql`
   ) {
     updateProduct(
       id: $id
-      data: { id: $id, name: $name, description: $description, price: $price }
+      data: { name: $name, description: $description, price: $price }
     ) {
       id
       name
@@ -44,21 +44,24 @@ export default function UpdateProduct({ id }) {
   const [
     updateProduct,
     { data: updateData, error: updateError, loading: updateLoading },
-  ] = useMutation(UPDATE_PRODUCT_MUTATION, {
-    variables: {
-      id,
-      // TODO: Pass in updates to product here
-    },
-  });
+  ] = useMutation(UPDATE_PRODUCT_MUTATION);
 
   const { inputs, handleChange, clearForm, resetForm } = useForm(data?.Product);
-  console.log(inputs);
 
   if (loading) return <p>Loading...</p>;
   return (
     <Form
       onSubmit={async (e) => {
         e.preventDefault();
+        const res = updateProduct({
+          variables: {
+            id,
+            name: inputs.name,
+            description: inputs.description,
+            price: inputs.price,
+          },
+        });
+        console.log(res);
         // TODO: Handle Submit
         // const res = await createProduct();
         // clearForm();
@@ -76,7 +79,7 @@ export default function UpdateProduct({ id }) {
             id="name"
             name="name"
             placeholder="Name"
-            value={inputs.name}
+            value={inputs.name || ''}
             onChange={handleChange}
           />
         </label>
@@ -87,7 +90,7 @@ export default function UpdateProduct({ id }) {
             id="price"
             name="price"
             placeholder="Price"
-            value={inputs.price}
+            value={inputs.price || ''}
             onChange={handleChange}
           />
         </label>
@@ -97,7 +100,7 @@ export default function UpdateProduct({ id }) {
             id="description"
             name="description"
             placeholder="Description"
-            value={inputs.description}
+            value={inputs.description || ''}
             onChange={handleChange}
           />
         </label>
