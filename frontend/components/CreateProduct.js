@@ -1,10 +1,11 @@
 import gql from 'graphql-tag';
 import { useMutation } from '@apollo/client';
 import Router from 'next/router';
+import { Formik, Field, Form, ErrorMessage } from 'formik';
 import useForm from '../lib/useForm';
 import DisplayError from './ErrorMessage';
-import Form from './styles/Form';
 import { ALL_PRODUCTS_QUERY } from './Products';
+import FormikStyles from './styles/FormikStyles';
 
 const CREATE_PRODUCT_MUTATION = gql`
   mutation CREATE_PRODUCT_MUTATION(
@@ -31,78 +32,47 @@ const CREATE_PRODUCT_MUTATION = gql`
 `;
 
 export default function CreateProduct() {
-  const { inputs, handleChange, clearForm, resetForm } = useForm({
-    image: '',
-    name: 'Bob',
-    price: 24242,
-    description: 'These nice ey?',
-  });
-
   const [createProduct, { loading, error, data }] = useMutation(
-    CREATE_PRODUCT_MUTATION,
-    {
-      variables: inputs,
-      refetchQueries: [{ query: ALL_PRODUCTS_QUERY }],
-    }
+    CREATE_PRODUCT_MUTATION
   );
 
   return (
-    <Form
-      onSubmit={async (e) => {
-        e.preventDefault();
-        const res = await createProduct();
-        clearForm();
-        Router.push({
-          pathname: `/product/${res.data.createProduct.id}`,
-        });
-      }}
-    >
-      <DisplayError error={error} />
-      <fieldset disabled={loading} aria-busy={loading}>
-        <label htmlFor="name">
-          Image
-          <input
-            required
-            type="file"
-            id="image"
-            name="image"
-            onChange={handleChange}
-          />
-        </label>
-        <label htmlFor="name">
-          Name
-          <input
-            type="text"
-            id="name"
-            name="name"
-            placeholder="Name"
-            value={inputs.name}
-            onChange={handleChange}
-          />
-        </label>
-        <label htmlFor="price">
-          Price
-          <input
-            type="number"
-            id="price"
-            name="price"
-            placeholder="Price"
-            value={inputs.price}
-            onChange={handleChange}
-          />
-        </label>
-        <label htmlFor="description">
-          Description
-          <textarea
-            id="description"
-            name="description"
-            placeholder="Description"
-            value={inputs.description}
-            onChange={handleChange}
-          />
-        </label>
-        <button type="submit">+ Add Product</button>
-      </fieldset>
-    </Form>
+    <div>
+      <Formik
+        initialValues={{ image: '', name: '', price: '', description: '' }}
+        onSubmit={async (values, { setSubmitting }) => {
+          const res = await createProduct({
+            variables: values,
+            refetchQueries: [{ query: ALL_PRODUCTS_QUERY }],
+          });
+
+          Router.push({
+            pathname: `/product/${res.data.createProduct.id}`,
+          });
+          setSubmitting(false);
+        }}
+      >
+        <Form>
+          <FormikStyles>
+            <label htmlFor="image">Image</label>
+            <Field name="image" type="file" />
+            <ErrorMessage name="image" />
+
+            <label htmlFor="name">Name</label>
+            <Field name="name" type="text" />
+            <ErrorMessage name="name" />
+
+            <label htmlFor="price">Price</label>
+            <Field name="price" type="number" />
+            <ErrorMessage name="price" />
+
+            <label htmlFor="description">Description</label>
+            <Field name="description" as="textarea" />
+            <ErrorMessage name="description" />
+            <button type="submit">Submit</button>
+          </FormikStyles>
+        </Form>
+      </Formik>
+    </div>
   );
 }
