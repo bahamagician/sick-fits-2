@@ -2,8 +2,6 @@ import gql from 'graphql-tag';
 import { useMutation } from '@apollo/client';
 import Router from 'next/router';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
-import useForm from '../lib/useForm';
-import DisplayError from './ErrorMessage';
 import { ALL_PRODUCTS_QUERY } from './Products';
 import FormikStyles from './styles/FormikStyles';
 
@@ -52,26 +50,37 @@ export default function CreateProduct() {
           setSubmitting(false);
         }}
       >
-        <Form>
-          <FormikStyles>
-            <label htmlFor="image">Image</label>
-            <Field name="image" type="file" />
-            <ErrorMessage name="image" />
+        {({ errors, isSubmitting, setFieldValue }) => (
+          <Form>
+            <FormikStyles>
+              <label htmlFor="image">File upload</label>
+              <input
+                id="image"
+                name="image"
+                type="file"
+                onChange={(event) => {
+                  setFieldValue('image', event.currentTarget.files[0]);
+                }}
+                className="form-control"
+              />
 
-            <label htmlFor="name">Name</label>
-            <Field name="name" type="text" />
-            <ErrorMessage name="name" />
+              <ErrorMessage name="image" />
 
-            <label htmlFor="price">Price</label>
-            <Field name="price" type="number" />
-            <ErrorMessage name="price" />
+              <label htmlFor="name">Name</label>
+              <Field name="name" type="text" />
+              <ErrorMessage name="name" />
 
-            <label htmlFor="description">Description</label>
-            <Field name="description" as="textarea" />
-            <ErrorMessage name="description" />
-            <button type="submit">Submit</button>
-          </FormikStyles>
-        </Form>
+              <label htmlFor="price">Price</label>
+              <Field name="price" type="number" />
+              <ErrorMessage name="price" />
+
+              <label htmlFor="description">Description</label>
+              <Field name="description" as="textarea" />
+              <ErrorMessage name="description" />
+              <button type="submit">Submit</button>
+            </FormikStyles>
+          </Form>
+        )}
       </Formik>
     </div>
   );
