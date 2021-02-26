@@ -1,8 +1,9 @@
 import { useMutation, useQuery } from '@apollo/client';
+import { Formik, Field, Form, ErrorMessage } from 'formik';
 import gql from 'graphql-tag';
 import useForm from '../lib/useForm';
 import DisplayError from './ErrorMessage';
-import Form from './styles/Form';
+import FormikStyles from './styles/FormikStyles';
 
 const SINGLE_PRODUCT_QUERY = gql`
   query SINGLE_PRODUCT_QUERY($id: ID!) {
@@ -50,62 +51,41 @@ export default function UpdateProduct({ id }) {
 
   if (loading) return <p>Loading...</p>;
   return (
-    <Form
-      onSubmit={async (e) => {
-        e.preventDefault();
+    <Formik
+      initialValues={{
+        name: data?.Product?.name,
+        price: data?.Product?.price,
+        description: data?.Product?.description,
+      }}
+      onSubmit={async (values, { setSubmitting }) => {
         const res = updateProduct({
           variables: {
             id,
-            name: inputs.name,
-            description: inputs.description,
-            price: inputs.price,
+            ...values,
           },
         });
-        console.log(res);
-        // TODO: Handle Submit
-        // const res = await createProduct();
-        // clearForm();
-        // Router.push({
-        //   pathname: `/product/${res.data.createProduct.id}`,
-        // });
+        setSubmitting(false);
       }}
     >
-      <DisplayError error={error || updateError} />
-      <fieldset disabled={updateLoading} aria-busy={updateLoading}>
-        <label htmlFor="name">
-          Name
-          <input
-            type="text"
-            id="name"
-            name="name"
-            placeholder="Name"
-            value={inputs.name || ''}
-            onChange={handleChange}
-          />
-        </label>
-        <label htmlFor="price">
-          Price
-          <input
-            type="number"
-            id="price"
-            name="price"
-            placeholder="Price"
-            value={inputs.price || ''}
-            onChange={handleChange}
-          />
-        </label>
-        <label htmlFor="description">
-          Description
-          <textarea
-            id="description"
-            name="description"
-            placeholder="Description"
-            value={inputs.description || ''}
-            onChange={handleChange}
-          />
-        </label>
-        <button type="submit">Update Product</button>
-      </fieldset>
-    </Form>
+      {({ errors, isSubmitting, setFieldValue }) => (
+        <Form>
+          <DisplayError error={error || updateError} />
+          <FormikStyles>
+            <label htmlFor="name">Name</label>
+            <Field name="name" type="text" />
+            <ErrorMessage name="name" />
+
+            <label htmlFor="price">Price</label>
+            <Field name="price" type="number" />
+            <ErrorMessage name="price" />
+
+            <label htmlFor="description">Description</label>
+            <Field name="description" as="textarea" />
+            <ErrorMessage name="description" />
+            <button type="submit">Submit</button>
+          </FormikStyles>
+        </Form>
+      )}
+    </Formik>
   );
 }
